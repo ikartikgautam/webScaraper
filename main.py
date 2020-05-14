@@ -1,5 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
+from urllib.parse import urljoin
+import pandas as pd
 
 # ======================
 
@@ -23,6 +25,12 @@ def reqThenParse(page):
     html = prs.content
     parsed = BeautifulSoup(html,'html.parser')
     return parsed    
+
+def findHead(page):
+    hTag = page.find('h1',{'id':'firstHeading'}) 
+    if(hTag is not None):   
+        return hTag.get_text()
+
 # ======================
 
 urlSearch = 'https://en.wikipedia.org/w/index.php?cirrusUserTesting=control&search='
@@ -86,3 +94,36 @@ generalTable = dict(zip(keys,values))
 
 print('TABLE = ')
 print(generalTable)
+
+# Headings in the page
+headings = destPage.find_all('span',{'class':'mw-headline'})
+
+for ele in headings:
+    print(ele.get_text())
+
+# all links in the page
+# links = destPage.find_all('a')
+
+# urlHeadKey = []
+# urlLink = []
+
+# for ele in links:
+#     x = ele.get('href')
+#     fUrl = urljoin(wikiUrl,x)
+#     prs = reqThenParse(fUrl)
+#     urlHead = findHead(prs)
+#     if(urlHead is not None):
+#         urlHeadKey.append(urlHead)
+#         urlLink.append(fUrl)
+
+# linksDict = dict(zip(urlHeadKey,urlLink))
+
+# print(linksDict)
+
+
+dfPerson = pd.DataFrame(generalTable.items())
+print(dfPerson)
+
+awardTable = destPage.find('table',{'class':'wikitable sortable jquery-tablesorter'})
+
+print(awardTable)
