@@ -38,8 +38,6 @@ def findHead(page):
         return hTag.get_text()
 
 # rotten Tomato Listing
-
-
 def movie():
     baseRotten = 'https://www.rottentomatoes.com/'
     searchUrl = 'https://www.rottentomatoes.com/napi/search/?query='
@@ -159,6 +157,89 @@ def wiki():
     if ch=='y':    
         dfPerson.to_csv('personal info.csv')
 
+## IMDB Rating,Cast,details Listing
+def imdb():
+    baseImdb = 'https://www.imdb.com/'
+    searchBase = 'https://www.imdb.com/find?q='
+
+    movieName = input('Enter the movie to search :')
+
+    movieName.replace(' ','+')
+    searchQuery = searchBase + movieName
+
+    req = requests.get(searchQuery)
+    html = req.content
+    soup = BeautifulSoup(html,'html.parser')
+
+    searchTd = soup.find_all('td',{'class':'result_text'})
+    searchTd
+
+    aLink = []
+    count = 1
+
+    for i in searchTd:
+        a=i.find('a')
+        print(count,'. ',i.get_text())
+        aLink.append(a.get('href'))
+        count = count +1
+
+    select = int(input('Enter the number to search details for : '))
+
+    directory = aLink[select-1]
+
+    pageImdb = urljoin(baseImdb,directory)
+
+    print('Page Link = ',pageImdb)
+
+    req = requests.get(pageImdb)
+    html = req.content
+    movieSoup = BeautifulSoup(html,'html.parser')
+
+    head = movieSoup.find('h1')
+
+
+    Title = head.get_text().replace('\xa0',' ')
+
+    ratingRaw = movieSoup.find('span',{'itemprop':'ratingValue'})
+    ratingCountRaw = movieSoup.find('span',{'itemprop':'ratingCount'})
+
+    rating = ratingRaw.get_text()
+    ratingCount = ratingCountRaw.get_text()
+
+    ratingCount
+
+    """# Table Cast"""
+
+    table = movieSoup.find('table',{'class':'cast_list'})
+
+    castRaw = table.find_all('img')
+
+    cast = []
+    for i in castRaw:
+        cast.append(i.get('title'))
+
+    cast
+
+    """# Other info"""
+
+    storyLineRaw = movieSoup.find('div',attrs={'class':'article','id':'titleStoryLine'})
+
+    storyLine = storyLineRaw.find('div',{'class':'inline'}).find('span').get_text()
+
+    didYouKnow = movieSoup.find('div',{'id':'titleDidYouKnow'}).get_text()
+
+    print('\n\nDETAILS:\n')
+
+    print('Title : ',Title)
+    print('Rating = ',rating)
+    print('Total Rating Count = ',ratingCount)
+    print('\nCast of Movie \n')
+    for i in cast:
+        print('==> ',i)
+    print('\nSTORY LINE\n',storyLine)
+    # print('\nDID YOU KNOW ?\n',didYouKnow.replace('See more',''))
+
+
 
 # ======================
 
@@ -169,6 +250,14 @@ print('1 = Movies\n2 = Persons Information')
 choice = int(input(''))
 
 if choice==1:
-    movie()
+    source = int(input('Which Source ? (1 = Rotten Tomatoes/2 = IMDB)'))
+    if source==1:
+        movie()
+    elif source==2:
+        imdb()
+    else:
+        print('ERROR !')        
 elif choice==2:
-    wiki()    
+    wiki()
+else:
+    print('ERROR !')                
